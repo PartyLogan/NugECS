@@ -11,13 +11,18 @@ public class Program
     public static World World;
     public static Texture2D BunnySprite;
     public static Random rng = new Random();
+
+    public static int ToSpawn = 0;
+    public static int ToDespawn = 0;
+    
     public static void Main()
     {
-        World = new World(200_000, true);
+        World = new World(200_000);
         World.Init();
         Raylib.InitWindow(1280, 720, "Test App");
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
+        ToSpawn = 120_000;
         
         while (!Raylib.WindowShouldClose())
         {
@@ -42,29 +47,43 @@ public class Program
         Raylib.CloseWindow();
     }
 
+    private const int CHANGE_AMOUNT = 1000;
+    private const int TO_CHANGE = 10;
+    
     public static void Update()
     {
-        if (Raylib.IsMouseButtonDown(MouseButton.Left))
+        if (Raylib.IsMouseButtonDown(MouseButton.Left) && ToSpawn == 0 && ToDespawn == 0)
         {
-            for (int i = 0; i < 100; i++)
-            {
-                if (World.ActiveEntities() < World.MaxEntities())
-                {
-                    SpawnBunny();
-                }
-            }
+            ToSpawn = Math.Clamp(World.MaxEntities() - World.ActiveEntities(), 0, CHANGE_AMOUNT);
         }
         else if (Raylib.IsMouseButtonDown(MouseButton.Right))
         {
-            for (int i = 0; i < 100; i++)
+            ToDespawn = Math.Clamp(World.ActiveEntities(), 0, CHANGE_AMOUNT);
+        }
+
+        if (ToSpawn > 0)
+        {
+            for (int i = TO_CHANGE; i > 0; i--)
             {
-                if (World.ActiveEntities() > 0)
-                {
-                    World.DeleteEntity(World.GetLastActive());
-                }
+                SpawnBunny();
+                ToSpawn--;
+                if (ToSpawn == 0)
+                    break;
             }
         }
 
+        if (ToDespawn > 0)
+        {
+            for (int i = TO_CHANGE; i > 0; i--)
+            {
+                World.DeleteEntity(World.GetLastActive());
+                ToDespawn--;
+                if (ToDespawn == 0)
+                    break;
+            }
+            
+        }
+        
         var delta = Raylib.GetFrameTime();
         World.Update(delta);
     }
