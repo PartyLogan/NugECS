@@ -46,7 +46,6 @@ public class MoverComponent : Component, IUpdater
         {
             Velocity.Y = Gravity;
         }
-        //Console.WriteLine("I updated!");
     }
 
 }

@@ -12,7 +12,7 @@ public class RenderComponent : Component, IRenderer
     private Rectangle _dest = new Rectangle(0, 0, 32, 32);
     private float _rotation = 0;
     private Vector2 _origin = new Vector2(16, 16);
-    private MoverComponent _mover;
+    private MoverComponent _mover = null;
     
     public RenderComponent(Texture2D sprite, Color color)
     {

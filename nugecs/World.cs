@@ -158,7 +158,7 @@ public class World
         if (_activeIDs.Count == _activeIDs.Capacity)
         {
             // We full fool
-            Console.WriteLine("Max entitites met!");
+            Console.WriteLine("Max entities met!");
             return new EntityID();
         }
         if (_freeIDs.Count > 0)
@@ -196,7 +196,8 @@ public class World
     {
         return _activeIDs.Last();
     }
-
+    
+    // TODO: I should probably use when things call into the World as a first check and a quicker fail. For instance getting components from EntityID
     public bool IsLive(EntityID id)
     {
         if (_activeIDs.Contains(id))

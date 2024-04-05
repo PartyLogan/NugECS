@@ -19,10 +19,9 @@ public abstract class Component
         _owner = id;
     }
     public virtual void Init() { }
+    // TODO: Add enabling and disabling
     public virtual void Enable() { }
     public virtual void Disable() { }
-    //public virtual void Update() { }
-    //public virtual void Render() { }
 }
 
 
