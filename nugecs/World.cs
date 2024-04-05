@@ -149,8 +149,7 @@ public class World
         foreach (var kvp in _componentMappers)
         {
             var mapper = kvp.Value;
-            var method = mapper.GetType().GetMethod("RemoveComponent");
-            method.Invoke(mapper, new object[] { entity });
+            mapper.RemoveComponent(entity);
         }
     }
 
