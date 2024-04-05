@@ -13,7 +13,7 @@ public class Program
     public static Random rng = new Random();
     public static void Main()
     {
-        World = new World(200_000);
+        World = new World(200_000, true);
         World.Init();
         Raylib.InitWindow(1280, 720, "Test App");
         
@@ -33,7 +33,7 @@ public class Program
             Raylib.DrawText(result, 10, 30, 20, Color.Green);
             if (World.IsFixedUpdate())
             {
-                Raylib.DrawText(World.DebugUpdateString(), 10, 60, 20, Color.Green);
+                //Raylib.DrawText(World.DebugUpdateString(), 10, 60, 20, Color.Green);
             }
             
             Raylib.EndDrawing();
