@@ -9,9 +9,10 @@ public class Program
 {
     public static World World;
     public static Texture2D BunnySprite;
+    public static Random rng = new Random();
     public static void Main()
     {
-        World = new World(1_000_000);
+        World = new World(200_000);
         World.Init();
         Raylib.InitWindow(1280, 720, "Test App");
         
@@ -63,9 +64,8 @@ public class Program
     {
         var entity = World.CreateEntity();
         var mousePos = Raylib.GetMousePosition();
-        World.AddComponent(entity, new MoverComponent(mousePos.X, mousePos.Y));
-
-        var rng = new Random();
+        World.AddComponent(entity, new MoverComponent(mousePos.X, mousePos.Y, rng));
+        
         var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
         World.AddComponent(entity, new RenderComponent(BunnySprite, color));
     }

@@ -10,19 +10,20 @@ public class MoverComponent : Component, IUpdater
     public float X = 0;
     public float Y = 0;
     public Vector2 Velocity;
-    public int HSpeed = 100;
-    public int JSpeed = 400;
-    public float Gravity = 98f;
+    public int HSpeed = 50;
+    public int JSpeed = 620;
+    public float Gravity = 280f;
+    private Random _rng;
 
     private const int WIDTH = 1280 - 16;
     private const int HEIGHT = 720 - 16;
 
-    public MoverComponent(float x, float y)
+    public MoverComponent(float x, float y, Random rng)
     {
         X = x;
         Y = y;
-        var rng = new Random();
-        Velocity.X = rng.Next(-HSpeed, HSpeed);
+        _rng = rng;
+        Velocity.X = _rng.Next(-HSpeed, HSpeed);
     }
 
     public void Update()
@@ -39,7 +40,7 @@ public class MoverComponent : Component, IUpdater
 
         if (Y > HEIGHT)
         {
-            Velocity.Y -= JSpeed;
+            Velocity.Y = -_rng.Next(JSpeed / 6, JSpeed);
         }
 
         if (Y < 16)
