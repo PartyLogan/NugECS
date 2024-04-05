@@ -12,6 +12,7 @@ public class Program
     public static void Main()
     {
         World = new World(1_000_000);
+        World.Init();
         Raylib.InitWindow(1280, 720, "Test App");
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
@@ -37,7 +38,7 @@ public class Program
     {
         if (Raylib.IsMouseButtonDown(MouseButton.Left))
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 if (World.ActiveEntities() < World.MaxEntities())
                 {
@@ -47,7 +48,7 @@ public class Program
         }
         else if (Raylib.IsMouseButtonDown(MouseButton.Right))
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 if (World.ActiveEntities() > 0)
                 {

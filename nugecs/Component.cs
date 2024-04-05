@@ -60,6 +60,14 @@ public class ComponentMapper
         return _type;
     }
 
+    public void Init()
+    {
+        foreach (var e in _active)
+        {
+            _components[e.Index].Init();
+        }
+    }
+
     public void Update()
     {
         foreach (var e in _active)

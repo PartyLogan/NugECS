@@ -4,13 +4,14 @@ namespace nugecs;
 
 public class World
 {
+    private bool _running = false;
     private int _maxEntities;
     private int _nextId = 0;
     private List<EntityID> _freeIDs = new List<EntityID>();
     private List<EntityID> _activeIDs = new List<EntityID>();
     private EntityID[] _entityIDs;
 
-    private Dictionary<Type, object> _componentMappers = new Dictionary<Type, object>();
+    private Dictionary<Type, ComponentMapper> _componentMappers = new Dictionary<Type, ComponentMapper>();
     private List<ComponentMapper> _updaters = new List<ComponentMapper>();
     private List<ComponentMapper> _renderers = new List<ComponentMapper>();
 
@@ -22,6 +23,17 @@ public class World
         _freeIDs.Capacity = maxEntities;
         _activeIDs.Capacity = maxEntities;
         Console.WriteLine($"World created with max entities: {_maxEntities}");
+    }
+
+    public void Init()
+    {
+        if (_running) return;
+        foreach (var cm in _componentMappers.Values)
+        {
+            cm.Init();
+        }
+
+        _running = true;
     }
 
     public void Update()
@@ -94,7 +106,7 @@ public class World
         return null;
     }
 
-    public Dictionary<Type, object> GetComponentMappers()
+    public Dictionary<Type, ComponentMapper> GetComponentMappers()
     {
         return _componentMappers;
     }
@@ -117,6 +129,11 @@ public class World
         mapper.AddComponent(entity, component);
         component.SetOwner(entity);
         component.SetWorld(this);
+
+        if (_running)
+        {
+            component.Init();
+        }
     }
 
     public void RemoveComponent<T>(EntityID entity) where T : Component

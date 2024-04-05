@@ -24,11 +24,6 @@ public class MoverComponent : Component, IUpdater
         var rng = new Random();
         Velocity.X = rng.Next(-HSpeed, HSpeed);
     }
-    
-    public override void Init()
-    {
-        Console.WriteLine($"Inited!");
-    }
 
     public void Update()
     {
