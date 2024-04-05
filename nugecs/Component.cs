@@ -28,7 +28,7 @@ public abstract class Component
 
 public interface IUpdater
 {
-    public void Update();
+    public void Update(float delta);
 }
 
 public interface IRenderer
@@ -67,12 +67,12 @@ public class ComponentMapper
         }
     }
 
-    public void Update()
+    public void Update(float delta)
     {
         foreach (var e in _active)
         {
             IUpdater updater = _components[e.Index] as IUpdater;
-            updater.Update();
+            updater.Update(delta);
         }
     }
 

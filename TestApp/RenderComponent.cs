@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using nugecs;
 using Raylib_cs;
+using Transform = nugecs.Transform;
 
 namespace NugEcsTestMark;
 
@@ -10,9 +11,8 @@ public class RenderComponent : Component, IRenderer
     private Color _color;
     private Rectangle _source = new Rectangle(0, 0, 32, 32);
     private Rectangle _dest = new Rectangle(0, 0, 32, 32);
-    private float _rotation = 0;
     private Vector2 _origin = new Vector2(16, 16);
-    private MoverComponent _mover = null;
+    private Transform _transform;
     
     public RenderComponent(Texture2D sprite, Color color)
     {
@@ -22,16 +22,14 @@ public class RenderComponent : Component, IRenderer
 
     public override void Init()
     {
-        _mover = _world.GetComponent<MoverComponent>(_owner);
+        _transform = _world.GetTransform(_owner);
     }
     
     public void Render()
     {
-        _dest.X = _mover.X;
-        _dest.Y = _mover.Y;
-        double rotationRadians = Math.Atan2(_mover.Velocity.Y, _mover.Velocity.X);
-        double rotationDegrees = rotationRadians * (180 / Math.PI);
-        _rotation = (float)rotationDegrees + 90;
-        Raylib.DrawTexturePro(_sprite, _source, _dest, _origin, _rotation, _color);
+        _dest.X = _transform.Position.X;
+        _dest.Y = _transform.Position.Y;
+
+        Raylib.DrawTexturePro(_sprite, _source, _dest, _origin, _transform.Rotation, _color);
     }
 }

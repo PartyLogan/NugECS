@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Intrinsics.X86;
+using System.Text.Formatting;
 using Raylib_cs;
 
 namespace NugEcsTestMark;
@@ -28,7 +29,13 @@ public class Program
             
             Raylib.DrawFPS(10, 10);
             var entCount = World.ActiveEntities();
-            Raylib.DrawText($"Entities: {entCount}", 10, 30, 20, Color.Green);
+            String result = StringBuffer.Format("Entities: {0}", entCount);
+            Raylib.DrawText(result, 10, 30, 20, Color.Green);
+            if (World.IsFixedUpdate())
+            {
+                Raylib.DrawText(World.DebugUpdateString(), 10, 60, 20, Color.Green);
+            }
+            
             Raylib.EndDrawing();
         }
         
@@ -57,14 +64,23 @@ public class Program
                 }
             }
         }
-        World.Update();
+
+        var delta = Raylib.GetFrameTime();
+        World.Update(delta);
     }
 
     public static void SpawnBunny()
     {
-        var entity = World.CreateEntity();
         var mousePos = Raylib.GetMousePosition();
-        World.AddComponent(entity, new MoverComponent(mousePos.X, mousePos.Y, rng));
+        var entity = World.CreateEntity(mousePos.X, mousePos.Y);
+        if (World.IsFixedUpdate())
+        {
+            World.AddComponent(entity, new FixedMoverComponent(rng));
+        }
+        else
+        {
+            World.AddComponent(entity, new MoverComponent(rng));
+        }
         
         var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
         World.AddComponent(entity, new RenderComponent(BunnySprite, color));
