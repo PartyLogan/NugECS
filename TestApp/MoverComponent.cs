@@ -52,8 +52,35 @@ public class MoverComponent : Component, IUpdater
             _transform.Position.Y = Math.Clamp(_transform.Position.Y, 16, HEIGHT);
         }
         
-        //double rotationDegrees = Math.Atan2(Velocity.Y, Velocity.X) * (180 / Math.PI);
-        _transform.Rotation = (float)(Math.Atan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;
+        float rotationDegrees = (float)(FastAtan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;
+        _transform.Rotation = rotationDegrees;
     }
-
+    
+    public float FastAtan2(float y, float x)
+    {
+        if (x == 0f)
+        {
+            if (y > 0f) return (float)(Math.PI / 2);
+            if (y == 0f) return 0f;
+            return (float)(-Math.PI / 2);
+        }
+        float atan;
+        float z = y / x;
+        if (Math.Abs(z) < 1f)
+        {
+            atan = z / (1f + 0.28f * z * z);
+            if (x < 0f)
+            {
+                if (y < 0f) return atan - (float)Math.PI;
+                return atan + (float)Math.PI;
+            }
+        }
+        else
+        {
+            atan = (float)(Math.PI / 2) - z / (z * z + 0.28f);
+            if (y < 0f) return atan - (float)Math.PI;
+        }
+        return atan;
+    }
 }
+

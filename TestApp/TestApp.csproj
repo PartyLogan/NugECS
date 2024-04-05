@@ -16,7 +16,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\nugecs.csproj" />
       <ProjectReference Include="..\nugecs\nugecs.csproj" />
     </ItemGroup>
 
