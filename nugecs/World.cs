@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Reflection;
+using System.Text.Formatting;
 
 namespace nugecs;
 
@@ -34,6 +35,11 @@ public class World
         _freeIDs.Capacity = maxEntities;
         _activeIDs.Capacity = maxEntities;
         Console.WriteLine($"World created with max entities: {_maxEntities}");
+    }
+
+    public void SetFixedUpdate(bool value)
+    {
+        _fixedUpdate = value;
     }
     
     public void Init()
@@ -95,12 +101,15 @@ public class World
     {
         return _framesWithoutUpdate;
     }
-
-    public string DebugUpdateString()
+    
+    private String debugUpdateString;
+    public string DebugFixedUpdateString()
     {
-        return $"Update FPS: {_fixedFps} - Check Time: {_fixedUpdateCheck} - Updates called last: {_updatesProcessedLast}";
+        return debugUpdateString = StringBuffer.Format("Update FPS: {0} - Updates called last: {1}", _fixedFps, _updatesProcessedLast);
     }
 
+    
+    
     public void Render()
     {
         foreach (var cm in _renderers)
@@ -488,3 +497,4 @@ public class World
         return new EntityID();
     }
 }
+

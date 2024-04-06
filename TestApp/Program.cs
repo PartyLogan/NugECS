@@ -16,9 +16,9 @@ public class Program
     public static int ToSpawn = 0;
     public static int ToDespawn = 0;
 
-    public static bool ecs = true;
+    public static bool ecs = false;
     
-    public static void Main()
+    public static void Main(string[] args)
     {
         World = new World(200_000);
         World.Init();
@@ -29,6 +29,15 @@ public class Program
         World.RegisterComponent<ECSMoverComponent>();
         World.RegisterComponent<ECSRenderComponent>();
         Raylib.InitWindow(1280, 720, "Test App");
+
+        if (args.Length > 0)
+        {
+            var input = args[0];
+            if (input == "ecs")
+                ecs = true;
+            if(input == "fixed")
+                World.SetFixedUpdate(true);
+        }
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
         ToSpawn = 100;
@@ -57,7 +66,7 @@ public class Program
             Raylib.DrawText(fastStr, 10, 60, 20, Color.Green);
             if (World.IsFixedUpdate())
             {
-                //Raylib.DrawText(World.DebugUpdateString(), 10, 60, 20, Color.Green);
+                Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
             }
             
             Raylib.EndDrawing();
