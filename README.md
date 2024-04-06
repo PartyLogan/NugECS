@@ -6,7 +6,7 @@ While ECS is viable in it (aka using queries) it is not the main focus. Think Un
 ### Test App performance (1280x720):  
 __E-CS variable update__: 60fps 150000  
 __E-CS fixed update__: 60fps 146000  
-__ECS low alloc queries__: 60fps 69000 
+__ECS low alloc queries__: 60fps 69000  
 __ECS high allow queries__: 60fps 81000 
 
 ### Rig:  
