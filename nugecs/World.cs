@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection;
-using System.Text.Formatting;
+using System.Security.Cryptography;
+
 
 namespace nugecs;
 
@@ -23,6 +24,7 @@ public class World
     private Dictionary<Type, ComponentMapper> _componentMappers = new Dictionary<Type, ComponentMapper>();
     private List<ComponentMapper> _updaters = new List<ComponentMapper>();
     private List<ComponentMapper> _renderers = new List<ComponentMapper>();
+    private Dictionary<Type, object> _resources = new Dictionary<Type, object>();
 
     public World(int maxEntities = 10_000, bool fixedUpdate = false, int fixedFps = 60)
     {
@@ -46,7 +48,10 @@ public class World
     {
         if (_running) return;
 
+        var time = new TimeResource();
+        RegisterResource<TimeResource>(time);
         _fixedUpdateCheck = 1.0 / _fixedFps; // Set the amount of delta time need to pass for an update
+        time.FixedDelta = (float)_fixedUpdateCheck;
         
         foreach (var cm in _componentMappers.Values)
         {
@@ -56,8 +61,11 @@ public class World
         _running = true;
     }
 
-    public void Update(double delta)
+    public void Update(float delta)
     {
+        var time = GetResource<TimeResource>();
+        time.Delta = delta;
+        
         if (_fixedUpdate)
         {
             // Add the delta to the current frame count
@@ -86,7 +94,7 @@ public class World
         {
             foreach (var cm in _updaters)
             {
-                cm.Update((float)delta);
+                cm.Update(delta);
             }
         }
 
@@ -102,14 +110,12 @@ public class World
         return _framesWithoutUpdate;
     }
     
-    private String debugUpdateString;
     public string DebugFixedUpdateString()
     {
-        return debugUpdateString = StringBuffer.Format("Update FPS: {0} - Updates called last: {1}", _fixedFps, _updatesProcessedLast);
+        return $"Update FPS: {_fixedFps} - Updates called last: {_updatesProcessedLast}";
     }
 
-    
-    
+
     public void Render()
     {
         foreach (var cm in _renderers)
@@ -126,6 +132,23 @@ public class World
     public int ActiveEntities()
     {
         return _activeIDs.Count;
+    }
+    
+    /// <summary>
+    /// Can only have one resource of a type registered.
+    /// </summary>
+    /// <param name="resource"></param>
+    /// <typeparam name="T"></typeparam>
+    public void RegisterResource<T>(T resource)
+    {
+        _resources.TryAdd(typeof(T), resource);
+    }
+
+    public T GetResource<T>()
+    {
+        object res;
+        _resources.TryGetValue(typeof(T), out res);
+        return (T)res;
     }
 
     public void RegisterComponent<T>() where T : Component
@@ -165,7 +188,7 @@ public class World
         {
             if (key == type)
             {
-                ComponentMapper value = _componentMappers[key] as ComponentMapper;
+                ComponentMapper value = _componentMappers[key];
                 return value;
             }
         }
@@ -181,7 +204,7 @@ public class World
     {
         var mapper = GetComponentMapper<T>();
         var comp = mapper.GetComponent(entity);
-        return comp as T;
+        return (T)comp;
     }
     
     public void AddComponent<T>(EntityID entity, T component) where T : Component
@@ -313,7 +336,7 @@ public class World
     /// </summary>
     /// <param name="has"></param>
     /// <returns></returns>
-    public Dictionary<Type, Component[]> QueryHighAlloc(Type[] has, Type[] doesNotHave)
+    public Dictionary<Type, Component[]> Query(Type[] has, Type[] doesNotHave)
     {
         var result = new Dictionary<Type, Component[]>();
 
@@ -341,7 +364,7 @@ public class World
         return result;
     }
     
-    public Dictionary<Type, Component[]> Query(Type[] has, Type[] doesNotHave)
+    public Dictionary<Type, Component[]> QueryLessAlloc(Type[] has, Type[] doesNotHave)
     {
         var result = new Dictionary<Type, Component[]>();
 
@@ -388,7 +411,7 @@ public class World
     }
 
     
-    public Dictionary<Type, Component[]> Query(Type[] has)
+    public Dictionary<Type, Component[]> QueryLessAlloc(Type[] has)
     {
         var result = new Dictionary<Type, Component[]>();
 
@@ -441,7 +464,7 @@ public class World
     /// </summary>
     /// <param name="has"></param>
     /// <returns></returns>
-    public Dictionary<Type, Component[]> QueryHighAlloc(Type[] has)
+    public Dictionary<Type, Component[]> Query(Type[] has)
     {
         var result = new Dictionary<Type, Component[]>();
 

@@ -1,5 +1,5 @@
 ﻿using System.Runtime.Intrinsics.X86;
-using System.Text.Formatting;
+
 using Raylib_cs;
 using TestApp;
 
@@ -16,7 +16,7 @@ public class Program
     public static int ToSpawn = 0;
     public static int ToDespawn = 0;
 
-    public static bool ecs = false;
+    public static bool ecs = true;
     
     public static void Main(string[] args)
     {
@@ -29,12 +29,15 @@ public class Program
         World.RegisterComponent<ECSMoverComponent>();
         World.RegisterComponent<ECSRenderComponent>();
         Raylib.InitWindow(1280, 720, "Test App");
-
+        
         if (args.Length > 0)
         {
             var input = args[0];
             if (input == "ecs")
+            {
                 ecs = true;
+            }
+                
             if(input == "fixed")
                 World.SetFixedUpdate(true);
         }
@@ -48,27 +51,24 @@ public class Program
             Raylib.ClearBackground(Color.Black);
             
             
-            if (ecs)
-            {
-                EcsUpdate();
-            }
-            else
-            {
-                Update();
-                World.Render();
-            }
+            BunnyCheck();
+            Update();
+            EcsUpdate();
+            World.Render();
             
             Raylib.DrawFPS(10, 10);
+            
             var entCount = World.ActiveEntities();
-            result = StringBuffer.Format("Entities: {0}", entCount);
+            result = $"Entities: {entCount}";
             Raylib.DrawText(result, 10, 30, 20, Color.Green);
-            fastStr = StringBuffer.Format("Fast: {0}", fast);
-            Raylib.DrawText(fastStr, 10, 60, 20, Color.Green);
+            var time = World.GetResource<TimeResource>();
+            Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
+            
             if (World.IsFixedUpdate())
             {
                 Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
             }
-            
+
             Raylib.EndDrawing();
         }
         
@@ -114,29 +114,21 @@ public class Program
 
     private const int CHANGE_AMOUNT = 1000;
     private const int TO_CHANGE = 10;
-    public static bool fast = false;
+
     public static void EcsUpdate()
     {
-        BunnyCheck();
-
-        if (Raylib.IsKeyPressed(KeyboardKey.Home))
-        {
-            fast = !fast;
-        }
+       
+        //var delta = Raylib.GetFrameTime();
+        var time = World.GetResource<TimeResource>();
+        var delta = time.Delta;
         
-        var delta = Raylib.GetFrameTime();
         Dictionary<Type, Component[]> movers;
-        if (fast)
-        {
-            movers = World.QueryHighAlloc([typeof(ECSMoverComponent)]);
-        }
-        else
-        {
-            movers = World.Query([typeof(ECSMoverComponent)]);
-        }
+
+        movers = World.Query([typeof(ECSMoverComponent)]);
+
         foreach (var m in movers[typeof(ECSMoverComponent)])
         { 
-            var mover = m as ECSMoverComponent;
+            var mover = (ECSMoverComponent)m;
             mover.Velocity.Y += mover.Gravity * delta;
 
             mover.Transform.Position.X += mover.Velocity.X  * delta;
@@ -165,18 +157,11 @@ public class Program
         }
         
         Dictionary<Type, Component[]> renderers;
-        if (fast)
-        {
-            renderers = World.QueryHighAlloc([typeof(ECSRenderComponent)]);
-        }
-        else
-        {
-            renderers = World.Query([typeof(ECSRenderComponent)]);
-        }
+        renderers = World.Query([typeof(ECSRenderComponent)]);
         
         foreach (var r in renderers[typeof(ECSRenderComponent)])
         {
-            var render = r as ECSRenderComponent;
+            var render = (ECSRenderComponent)r;
             render.Dest.X = render.Transform.Position.X;
             render.Dest.Y = render.Transform.Position.Y;
 
@@ -187,8 +172,19 @@ public class Program
     
     public static void Update()
     {
-        BunnyCheck();
-        
+        if (Raylib.GetMouseWheelMove() != 0)
+        {
+            if (Raylib.GetMouseWheelMove() > 0)
+            {
+                 var time = World.GetResource<TimeResource>();
+                 time.TimeMod += 0.1f;
+            }
+            else
+            {
+                var time = World.GetResource<TimeResource>();
+                time.TimeMod -= 0.1f;
+            }
+        }
         var delta = Raylib.GetFrameTime();
         World.Update(delta);
     }
