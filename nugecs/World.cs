@@ -298,6 +298,176 @@ public class World
     {
         return _transforms;
     }
+    
+    /// <summary>
+    ///  Slightly faster but has WAY more allocations and thus GC spikes
+    /// </summary>
+    /// <param name="has"></param>
+    /// <returns></returns>
+    public Dictionary<Type, List<Component>> QueryHighAlloc(Type[] has, Type[] doesNotHave)
+    {
+        var result = new Dictionary<Type, List<Component>>();
+
+        // Pre-fetch all EntityIDs for each 'has' type.
+        var hasIdSets = has.Select(t => new HashSet<EntityID>(_componentMappers[t].GetIDs())).ToList();
+
+        // Pre-fetch all EntityIDs to exclude from 'doesNotHave' types.
+        var excludeIds = new HashSet<EntityID>(doesNotHave.SelectMany(d => _componentMappers[d].GetIDs()));
+
+        // Start with all IDs from the first 'has' set, then intersect with the rest to find common IDs.
+        // Exclude the 'doesNotHave' IDs from this resulting set.
+        var remainingIds = hasIdSets
+            .Aggregate((current, next) => { current.IntersectWith(next); return current; })
+            .Where(id => !excludeIds.Contains(id))
+            .ToList();
+
+        // Now, iterate over the 'has' types once to fill the dictionary.
+        foreach (var type in has)
+        {
+            var mapper = _componentMappers[type];
+            var components = remainingIds.Select(id => mapper.GetComponent(id)).ToList();
+            result[type] = components;
+        }
+
+        return result;
+    }
+    
+    public Dictionary<Type, List<Component>> Query(Type[] has, Type[] doesNotHave)
+    {
+        var result = new Dictionary<Type, List<Component>>();
+
+        if (has == null || has.Length == 0)
+        {
+            return result;
+        }
+
+        // Initialize commonIds with the IDs from the first 'has' type, if available.
+        HashSet<EntityID> commonIds = new HashSet<EntityID>(_componentMappers[has[0]].GetIDs());
+
+        // Intersect commonIds with the IDs from the remaining 'has' types.
+        for (int i = 1; i < has.Length; i++)
+        {
+            var ids = new HashSet<EntityID>(_componentMappers[has[i]].GetIDs());
+            commonIds.IntersectWith(ids);
+        }
+
+        // If there are 'doesNotHave' types, exclude their IDs from commonIds.
+        if (doesNotHave != null)
+        {
+            foreach (var type in doesNotHave)
+            {
+                var excludeIds = _componentMappers[type].GetIDs();
+                commonIds.RemoveWhere(id => excludeIds.Contains(id));
+            }
+        }
+
+        // Now that we have the filtered commonIds, populate the result dictionary.
+        foreach (var type in has)
+        {
+            var mapper = _componentMappers[type];
+            var componentList = new List<Component>(commonIds.Count); // Allocate with known capacity to minimize resizing.
+        
+            foreach (var id in commonIds)
+            {
+                componentList.Add(mapper.GetComponent(id));
+            }
+
+            result.Add(type, componentList);
+        }
+
+        return result;
+    }
+
+    
+    public Dictionary<Type, List<Component>> Query(Type[] has)
+    {
+        var result = new Dictionary<Type, List<Component>>();
+
+        if (has == null || has.Length == 0)
+        {
+            return result;
+        }
+
+        HashSet<EntityID> commonIds = null;
+
+        // Directly work with the first set of IDs and intersect in-place.
+        foreach (var type in has)
+        {
+            var ids = _componentMappers[type].GetIDs();
+            if (commonIds == null)
+            {
+                commonIds = new HashSet<EntityID>(ids);
+            }
+            else
+            {
+                commonIds.IntersectWith(ids);
+            }
+        }
+
+        if (commonIds == null || commonIds.Count == 0)
+        {
+            return result; // No common entities found.
+        }
+
+        // Convert the hash set to a list once after all intersections are done.
+        var commonIdList = commonIds.ToList();
+
+        // Avoid LINQ for component retrieval to minimize allocations.
+        foreach (var type in has)
+        {
+            var mapper = _componentMappers[type];
+            var components = new List<Component>(commonIdList.Count);
+            foreach (var id in commonIdList)
+            {
+                components.Add(mapper.GetComponent(id));
+            }
+            result[type] = components;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Slightly faster but has WAY more allocations and thus GC spikes
+    /// </summary>
+    /// <param name="has"></param>
+    /// <returns></returns>
+    public Dictionary<Type, List<Component>> QueryHighAlloc(Type[] has)
+    {
+        var result = new Dictionary<Type, List<Component>>();
+
+        // Ensure there are types to process.
+        if (has == null || has.Length == 0)
+        {
+            return result;
+        }
+
+        // Pre-fetch all EntityIDs for each 'has' type.
+        var hasIdSets = has.Select(t => new HashSet<EntityID>(_componentMappers[t].GetIDs())).ToList();
+
+        // Use the first set as the starting point for finding common IDs, if available.
+        var remainingIds = new HashSet<EntityID>(hasIdSets.FirstOrDefault() ?? new HashSet<EntityID>());
+
+        // Intersect with the rest to find common IDs.
+        foreach (var idSet in hasIdSets.Skip(1))
+        {
+            remainingIds.IntersectWith(idSet);
+        }
+
+        // Convert back to a list after finding common IDs.
+        var commonIds = remainingIds.ToList();
+
+        // Now, iterate over the 'has' types once to fill the dictionary.
+        foreach (var type in has)
+        {
+            var mapper = _componentMappers[type];
+            var components = commonIds.Select(id => mapper.GetComponent(id)).ToList();
+            result.Add(type, components);
+        }
+
+        return result;
+    }
+
 
 
     /// <summary>

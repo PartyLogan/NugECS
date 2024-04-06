@@ -85,6 +85,16 @@ public class ComponentMapper
         }
     }
 
+    public Component[] GetComponents()
+    {
+        return _components;
+    }
+
+    public List<EntityID> GetIDs()
+    {
+        return _active;
+    }
+
     public void AddComponent(EntityID entity, Component component)
     {
         if (_active.Contains(entity))

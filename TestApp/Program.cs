@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Intrinsics.X86;
 using System.Text.Formatting;
 using Raylib_cs;
+using TestApp;
 
 namespace NugEcsTestMark;
 
@@ -19,18 +20,23 @@ public class Program
     {
         World = new World(200_000);
         World.Init();
+        World.RegisterComponent<NullComponent>();
+        World.RegisterComponent<MoverComponent>();
+        World.RegisterComponent<FixedMoverComponent>();
+        World.RegisterComponent<RenderComponent>();
         Raylib.InitWindow(1280, 720, "Test App");
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
-        ToSpawn = 120_000;
+        ToSpawn = 100;
         
         while (!Raylib.WindowShouldClose())
         {
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
             
-            Update();
-            World.Render();
+            //Update();
+            //World.Render();
+            EcsUpdate();
             
             Raylib.DrawFPS(10, 10);
             var entCount = World.ActiveEntities();
@@ -47,10 +53,7 @@ public class Program
         Raylib.CloseWindow();
     }
 
-    private const int CHANGE_AMOUNT = 1000;
-    private const int TO_CHANGE = 10;
-    
-    public static void Update()
+    public static void BunnyCheck()
     {
         if (Raylib.IsMouseButtonDown(MouseButton.Left) && ToSpawn == 0 && ToDespawn == 0)
         {
@@ -81,8 +84,35 @@ public class Program
                 if (ToDespawn == 0)
                     break;
             }
-            
         }
+    }
+
+    private const int CHANGE_AMOUNT = 1000;
+    private const int TO_CHANGE = 10;
+    
+    public static void EcsUpdate()
+    {
+        BunnyCheck();
+        
+        var delta = Raylib.GetFrameTime();
+        var movers = World.QueryHighAlloc([typeof(MoverComponent)], [typeof(NullComponent)]);
+        foreach (var m in movers[typeof(MoverComponent)])
+        { 
+            var mover = m as MoverComponent;
+            mover.Update(delta);
+        }
+        
+        var renderers = World.Query([typeof(MoverComponent), typeof(RenderComponent)]);
+        foreach (var r in renderers[typeof(RenderComponent)])
+        {
+            var render = r as RenderComponent;
+            render.Render();
+        }
+    }
+    
+    public static void Update()
+    {
+        BunnyCheck();
         
         var delta = Raylib.GetFrameTime();
         World.Update(delta);
@@ -100,6 +130,10 @@ public class Program
         {
             World.AddComponent(entity, new MoverComponent(rng));
         }
+
+        if(rng.Next(10) > 8)
+            World.AddComponent(entity, new NullComponent());
+        
         
         var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
         World.AddComponent(entity, new RenderComponent(BunnySprite, color));
