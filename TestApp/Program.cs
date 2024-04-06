@@ -16,20 +16,11 @@ public class Program
     public static int ToSpawn = 0;
     public static int ToDespawn = 0;
 
-    public static bool ecs = true;
+    public static bool ecs = false;
     
     public static void Main(string[] args)
     {
         World = new World(200_000);
-        World.Init();
-        World.RegisterComponent<NullComponent>();
-        World.RegisterComponent<MoverComponent>();
-        World.RegisterComponent<FixedMoverComponent>();
-        World.RegisterComponent<RenderComponent>();
-        World.RegisterComponent<ECSMoverComponent>();
-        World.RegisterComponent<ECSRenderComponent>();
-        Raylib.InitWindow(1280, 720, "Test App");
-        
         if (args.Length > 0)
         {
             var input = args[0];
@@ -42,6 +33,26 @@ public class Program
                 World.SetFixedUpdate(true);
         }
         
+        World.RegisterComponent<NullComponent>();
+        World.RegisterComponent<MoverComponent>();
+        World.RegisterComponent<RenderComponent>();
+        
+        if (World.IsFixedUpdate())
+        {
+            World.RegisterComponent<FixedMoverComponent>();
+        }
+        
+        if (ecs)
+        {
+            World.RegisterComponent<ECSMoverComponent>();
+            World.RegisterComponent<ECSRenderComponent>();
+        }
+        
+        World.Init();
+        Raylib.InitWindow(1280, 720, "Test App");
+        
+        
+        
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
         ToSpawn = 100;
         
@@ -53,7 +64,11 @@ public class Program
             
             BunnyCheck();
             Update();
-            EcsUpdate();
+            if (ecs)
+            {
+                EcsUpdate();
+            }
+            
             World.Render();
             
             Raylib.DrawFPS(10, 10);
@@ -61,8 +76,13 @@ public class Program
             var entCount = World.ActiveEntities();
             result = $"Entities: {entCount}";
             Raylib.DrawText(result, 10, 30, 20, Color.Green);
-            var time = World.GetResource<TimeResource>();
+            var time = World.Time.ToString();
             Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
+
+            if (ecs)
+            {
+                Raylib.DrawText($"Using ECS", 10, 90, 20, Color.Green);
+            }
             
             if (World.IsFixedUpdate())
             {
@@ -113,13 +133,13 @@ public class Program
     }
 
     private const int CHANGE_AMOUNT = 1000;
-    private const int TO_CHANGE = 10;
+    private const int TO_CHANGE = 50;
 
     public static void EcsUpdate()
     {
        
         //var delta = Raylib.GetFrameTime();
-        var time = World.GetResource<TimeResource>();
+        var time = World.Time;
         var delta = time.Delta;
         
         Dictionary<Type, Component[]> movers;
@@ -176,12 +196,12 @@ public class Program
         {
             if (Raylib.GetMouseWheelMove() > 0)
             {
-                 var time = World.GetResource<TimeResource>();
+                 var time = World.Time;
                  time.TimeMod += 0.1f;
             }
             else
             {
-                var time = World.GetResource<TimeResource>();
+                var time = World.Time;
                 time.TimeMod -= 0.1f;
             }
         }

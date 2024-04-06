@@ -10,7 +10,7 @@ public class TimeResource
     public float TimeMod
     {
         get => _timeMod;
-        set => _timeMod = Math.Clamp(value, 0.01f, 5.0f);
+        set => _timeMod = Math.Clamp(value, 0.1f, 5.0f);
     }
     public float FixedDelta
     {
@@ -25,6 +25,6 @@ public class TimeResource
 
     public override string ToString()
     {
-        return $"T Mod: {_timeMod:0.###}, Fixed: {_fixedDelta*100:0.###}ms, Delta: {_delta * 100:0.###}ms";
+        return $"T Mod: {_timeMod:0.##}, Fixed: {_fixedDelta*1000:0.##}ms, Delta: {_delta * 1000:0.##}ms";
     }
 }

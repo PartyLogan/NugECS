@@ -8,9 +8,9 @@ namespace NugEcsTestMark;
 public class FixedMoverComponent : Component, IUpdater
 {
     public Vector2 Velocity;
-    public int HSpeed = 5;
-    public int JSpeed = 40;
-    public float Gravity = 0.98f;
+    public int HSpeed = 50;
+    public int JSpeed = 500;
+    public float Gravity = 180f;
 
     private const int WIDTH = 1280 - 16;
     private const int HEIGHT = 720 - 16;
@@ -29,10 +29,10 @@ public class FixedMoverComponent : Component, IUpdater
 
     public void Update(float delta)
     {
-        Velocity.Y += Gravity;
+        Velocity.Y += Gravity * delta;
 
-        _transform.Position.X += Velocity.X;
-        _transform.Position.Y += Velocity.Y;
+        _transform.Position.X += Velocity.X * delta;
+        _transform.Position.Y += Velocity.Y * delta;
         if (_transform.Position.X > WIDTH || _transform.Position.X < 16)
         {
             Velocity.X *= -1;
@@ -45,7 +45,7 @@ public class FixedMoverComponent : Component, IUpdater
 
         if (_transform.Position.Y < 16)
         {
-            Velocity.Y = Gravity;
+            Velocity.Y = Gravity * delta;
         }
         
         float rotationDegrees = (float)(FastAtan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;

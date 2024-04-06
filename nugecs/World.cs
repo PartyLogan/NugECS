@@ -26,6 +26,9 @@ public class World
     private List<ComponentMapper> _renderers = new List<ComponentMapper>();
     private Dictionary<Type, object> _resources = new Dictionary<Type, object>();
 
+    private TimeResource _time = new TimeResource();
+    public TimeResource Time { get => _time; private set => _time = value; }
+
     public World(int maxEntities = 10_000, bool fixedUpdate = false, int fixedFps = 60)
     {
         _maxEntities = maxEntities;
@@ -47,11 +50,10 @@ public class World
     public void Init()
     {
         if (_running) return;
-
-        var time = new TimeResource();
-        RegisterResource<TimeResource>(time);
+        
+        RegisterResource<TimeResource>(_time);
         _fixedUpdateCheck = 1.0 / _fixedFps; // Set the amount of delta time need to pass for an update
-        time.FixedDelta = (float)_fixedUpdateCheck;
+        _time.FixedDelta = (float)_fixedUpdateCheck;
         
         foreach (var cm in _componentMappers.Values)
         {
@@ -63,8 +65,8 @@ public class World
 
     public void Update(float delta)
     {
-        var time = GetResource<TimeResource>();
-        time.Delta = delta;
+        _time.Delta = delta;
+        _time.FixedDelta = (float)_fixedUpdateCheck;
         
         if (_fixedUpdate)
         {
@@ -86,7 +88,7 @@ public class World
                 _frameTimeCount -= _fixedUpdateCheck; // Minus the one update call time
                 foreach (var cm in _updaters)
                 {
-                    cm.Update((float)_fixedUpdateCheck);
+                    cm.Update(_time.FixedDelta);
                 }
             }
         }
@@ -94,7 +96,7 @@ public class World
         {
             foreach (var cm in _updaters)
             {
-                cm.Update(delta);
+                cm.Update(_time.Delta);
             }
         }
 
