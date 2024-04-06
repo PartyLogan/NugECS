@@ -304,9 +304,9 @@ public class World
     /// </summary>
     /// <param name="has"></param>
     /// <returns></returns>
-    public Dictionary<Type, List<Component>> QueryHighAlloc(Type[] has, Type[] doesNotHave)
+    public Dictionary<Type, Component[]> QueryHighAlloc(Type[] has, Type[] doesNotHave)
     {
-        var result = new Dictionary<Type, List<Component>>();
+        var result = new Dictionary<Type, Component[]>();
 
         // Pre-fetch all EntityIDs for each 'has' type.
         var hasIdSets = has.Select(t => new HashSet<EntityID>(_componentMappers[t].GetIDs())).ToList();
@@ -326,15 +326,15 @@ public class World
         {
             var mapper = _componentMappers[type];
             var components = remainingIds.Select(id => mapper.GetComponent(id)).ToList();
-            result[type] = components;
+            result[type] = components.ToArray();
         }
 
         return result;
     }
     
-    public Dictionary<Type, List<Component>> Query(Type[] has, Type[] doesNotHave)
+    public Dictionary<Type, Component[]> Query(Type[] has, Type[] doesNotHave)
     {
-        var result = new Dictionary<Type, List<Component>>();
+        var result = new Dictionary<Type, Component[]>();
 
         if (has == null || has.Length == 0)
         {
@@ -372,16 +372,16 @@ public class World
                 componentList.Add(mapper.GetComponent(id));
             }
 
-            result.Add(type, componentList);
+            result.Add(type, componentList.ToArray());
         }
 
         return result;
     }
 
     
-    public Dictionary<Type, List<Component>> Query(Type[] has)
+    public Dictionary<Type, Component[]> Query(Type[] has)
     {
-        var result = new Dictionary<Type, List<Component>>();
+        var result = new Dictionary<Type, Component[]>();
 
         if (has == null || has.Length == 0)
         {
@@ -421,7 +421,7 @@ public class World
             {
                 components.Add(mapper.GetComponent(id));
             }
-            result[type] = components;
+            result[type] = components.ToArray();
         }
 
         return result;
@@ -432,9 +432,9 @@ public class World
     /// </summary>
     /// <param name="has"></param>
     /// <returns></returns>
-    public Dictionary<Type, List<Component>> QueryHighAlloc(Type[] has)
+    public Dictionary<Type, Component[]> QueryHighAlloc(Type[] has)
     {
-        var result = new Dictionary<Type, List<Component>>();
+        var result = new Dictionary<Type, Component[]>();
 
         // Ensure there are types to process.
         if (has == null || has.Length == 0)
@@ -462,7 +462,7 @@ public class World
         {
             var mapper = _componentMappers[type];
             var components = commonIds.Select(id => mapper.GetComponent(id)).ToList();
-            result.Add(type, components);
+            result.Add(type, components.ToArray());
         }
 
         return result;

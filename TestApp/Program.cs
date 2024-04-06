@@ -26,6 +26,8 @@ public class Program
         World.RegisterComponent<MoverComponent>();
         World.RegisterComponent<FixedMoverComponent>();
         World.RegisterComponent<RenderComponent>();
+        World.RegisterComponent<ECSMoverComponent>();
+        World.RegisterComponent<ECSRenderComponent>();
         Raylib.InitWindow(1280, 720, "Test App");
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
@@ -49,8 +51,10 @@ public class Program
             
             Raylib.DrawFPS(10, 10);
             var entCount = World.ActiveEntities();
-            String result = StringBuffer.Format("Entities: {0}", entCount);
+            result = StringBuffer.Format("Entities: {0}", entCount);
             Raylib.DrawText(result, 10, 30, 20, Color.Green);
+            fastStr = StringBuffer.Format("Fast: {0}", fast);
+            Raylib.DrawText(fastStr, 10, 60, 20, Color.Green);
             if (World.IsFixedUpdate())
             {
                 //Raylib.DrawText(World.DebugUpdateString(), 10, 60, 20, Color.Green);
@@ -62,6 +66,9 @@ public class Program
         Raylib.CloseWindow();
     }
 
+    public static String result;
+    public static String fastStr;
+    
     public static void BunnyCheck()
     {
         if (Raylib.IsMouseButtonDown(MouseButton.Left) && ToSpawn == 0 && ToDespawn == 0)
@@ -98,13 +105,26 @@ public class Program
 
     private const int CHANGE_AMOUNT = 1000;
     private const int TO_CHANGE = 10;
-    
+    public static bool fast = false;
     public static void EcsUpdate()
     {
         BunnyCheck();
+
+        if (Raylib.IsKeyPressed(KeyboardKey.Home))
+        {
+            fast = !fast;
+        }
         
         var delta = Raylib.GetFrameTime();
-        var movers = World.QueryHighAlloc([typeof(ECSMoverComponent)], [typeof(NullComponent)]);
+        Dictionary<Type, Component[]> movers;
+        if (fast)
+        {
+            movers = World.QueryHighAlloc([typeof(ECSMoverComponent)]);
+        }
+        else
+        {
+            movers = World.Query([typeof(ECSMoverComponent)]);
+        }
         foreach (var m in movers[typeof(ECSMoverComponent)])
         { 
             var mover = m as ECSMoverComponent;
@@ -135,7 +155,16 @@ public class Program
             
         }
         
-        var renderers = World.Query([typeof(ECSRenderComponent)]);
+        Dictionary<Type, Component[]> renderers;
+        if (fast)
+        {
+            renderers = World.QueryHighAlloc([typeof(ECSRenderComponent)]);
+        }
+        else
+        {
+            renderers = World.Query([typeof(ECSRenderComponent)]);
+        }
+        
         foreach (var r in renderers[typeof(ECSRenderComponent)])
         {
             var render = r as ECSRenderComponent;
