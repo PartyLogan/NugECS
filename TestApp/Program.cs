@@ -15,6 +15,8 @@ public class Program
 
     public static int ToSpawn = 0;
     public static int ToDespawn = 0;
+
+    public static bool ecs = true;
     
     public static void Main()
     {
@@ -34,9 +36,16 @@ public class Program
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
             
-            //Update();
-            //World.Render();
-            EcsUpdate();
+            
+            if (ecs)
+            {
+                EcsUpdate();
+            }
+            else
+            {
+                Update();
+                World.Render();
+            }
             
             Raylib.DrawFPS(10, 10);
             var entCount = World.ActiveEntities();
@@ -95,18 +104,46 @@ public class Program
         BunnyCheck();
         
         var delta = Raylib.GetFrameTime();
-        var movers = World.QueryHighAlloc([typeof(MoverComponent)], [typeof(NullComponent)]);
-        foreach (var m in movers[typeof(MoverComponent)])
+        var movers = World.QueryHighAlloc([typeof(ECSMoverComponent)], [typeof(NullComponent)]);
+        foreach (var m in movers[typeof(ECSMoverComponent)])
         { 
-            var mover = m as MoverComponent;
-            mover.Update(delta);
+            var mover = m as ECSMoverComponent;
+            mover.Velocity.Y += mover.Gravity * delta;
+
+            mover.Transform.Position.X += mover.Velocity.X  * delta;
+            mover.Transform.Position.Y += mover.Velocity.Y  * delta;
+            if (mover.Transform.Position.X > mover.WIDTH || mover.Transform.Position.X < 16)
+            {
+                mover.Velocity.X *= -1;
+                mover.Transform.Position.X = Math.Clamp(mover.Transform.Position.X, 16, mover.WIDTH);
+            }
+
+            if (mover.Transform.Position.Y > mover.HEIGHT)
+            {
+                mover.Velocity.Y = -mover.JSpeed;
+                mover.Transform.Position.Y = Math.Clamp(mover.Transform.Position.Y, 16, mover.HEIGHT);
+            }
+
+            if (mover.Transform.Position.Y < 16)
+            {
+                mover.Velocity.Y = mover.Gravity;
+                mover.Transform.Position.Y = Math.Clamp(mover.Transform.Position.Y, 16, mover.HEIGHT);
+            }
+        
+            float rotationDegrees = (float)(mover.FastAtan2(mover.Velocity.Y, mover.Velocity.X) * (180 / Math.PI)) + 90;
+            mover.Transform.Rotation = rotationDegrees;
+            
         }
         
-        var renderers = World.Query([typeof(MoverComponent), typeof(RenderComponent)]);
-        foreach (var r in renderers[typeof(RenderComponent)])
+        var renderers = World.Query([typeof(ECSRenderComponent)]);
+        foreach (var r in renderers[typeof(ECSRenderComponent)])
         {
-            var render = r as RenderComponent;
-            render.Render();
+            var render = r as ECSRenderComponent;
+            render.Dest.X = render.Transform.Position.X;
+            render.Dest.Y = render.Transform.Position.Y;
+
+            Raylib.DrawTexturePro(render.Sprite, render.Source, render.Dest, render.Origin, render.Transform.Rotation, render.Color);
+            
         }
     }
     
@@ -126,6 +163,10 @@ public class Program
         {
             World.AddComponent(entity, new FixedMoverComponent(rng));
         }
+        else if(ecs)
+        {
+            World.AddComponent(entity, new ECSMoverComponent(rng));
+        }
         else
         {
             World.AddComponent(entity, new MoverComponent(rng));
@@ -136,6 +177,14 @@ public class Program
         
         
         var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
-        World.AddComponent(entity, new RenderComponent(BunnySprite, color));
+        if (ecs)
+        {
+            World.AddComponent(entity, new ECSRenderComponent(BunnySprite, color));
+        }
+        else
+        {
+            World.AddComponent(entity, new RenderComponent(BunnySprite, color));
+        }
+        
     }
 }

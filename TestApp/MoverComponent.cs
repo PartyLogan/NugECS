@@ -15,7 +15,7 @@ public class MoverComponent : Component, IUpdater
 
     private const int WIDTH = 1280 - 16;
     private const int HEIGHT = 720 - 16;
-    private Transform _transform;
+    public Transform Transform { get; set; }
 
     public MoverComponent(Random rng)
     {
@@ -25,35 +25,35 @@ public class MoverComponent : Component, IUpdater
 
     public override void Init()
     {
-        _transform = _world.GetTransform(_owner);
+        Transform = _world.GetTransform(_owner);
     }
 
     public void Update(float delta)
     {
         Velocity.Y += Gravity * delta;
 
-        _transform.Position.X += Velocity.X  * delta;
-        _transform.Position.Y += Velocity.Y  * delta;
-        if (_transform.Position.X > WIDTH || _transform.Position.X < 16)
+        Transform.Position.X += Velocity.X  * delta;
+        Transform.Position.Y += Velocity.Y  * delta;
+        if (Transform.Position.X > WIDTH || Transform.Position.X < 16)
         {
             Velocity.X *= -1;
-            _transform.Position.X = Math.Clamp(_transform.Position.X, 16, WIDTH);
+            Transform.Position.X = Math.Clamp(Transform.Position.X, 16, WIDTH);
         }
 
-        if (_transform.Position.Y > HEIGHT)
+        if (Transform.Position.Y > HEIGHT)
         {
             Velocity.Y = -JSpeed;
-            _transform.Position.Y = Math.Clamp(_transform.Position.Y, 16, HEIGHT);
+            Transform.Position.Y = Math.Clamp(Transform.Position.Y, 16, HEIGHT);
         }
 
-        if (_transform.Position.Y < 16)
+        if (Transform.Position.Y < 16)
         {
             Velocity.Y = Gravity;
-            _transform.Position.Y = Math.Clamp(_transform.Position.Y, 16, HEIGHT);
+            Transform.Position.Y = Math.Clamp(Transform.Position.Y, 16, HEIGHT);
         }
         
         float rotationDegrees = (float)(FastAtan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;
-        _transform.Rotation = rotationDegrees;
+        Transform.Rotation = rotationDegrees;
     }
     
     public float FastAtan2(float y, float x)
