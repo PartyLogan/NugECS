@@ -16,6 +16,24 @@ public struct EntityID
 
     }
 
+    public static EntityID Null()
+    {
+        return new EntityID(-1, -1);
+    }
+    
+    // Alternatively, you could implement a Clone method
+    public EntityID Clone()
+    {
+        return new EntityID(this);
+    }
+    
+    public EntityID(EntityID other)
+    {
+        // Copy all fields/properties from 'other' to this instance
+        Index = other.Index;
+        Generation = other.Generation;
+    }
+    
     public override string ToString()
     {
         return $"Entity ID - Index: {Index}, Gen: {Generation}";

@@ -20,11 +20,13 @@ public class World
     private List<EntityID> _freeIDs = new List<EntityID>();
     private List<EntityID> _activeIDs = new List<EntityID>();
     private EntityID[] _entityIDs;
+    private Dictionary<string, EntityID> _taggedEntities = new Dictionary<string, EntityID>();
     private Transform[] _transforms;
     private Dictionary<Type, ComponentMapper> _componentMappers = new Dictionary<Type, ComponentMapper>();
     private List<ComponentMapper> _updaters = new List<ComponentMapper>();
     private List<ComponentMapper> _renderers = new List<ComponentMapper>();
     private Dictionary<Type, object> _resources = new Dictionary<Type, object>();
+    private Dictionary<string, object> _taggedResources = new Dictionary<string, object>();
 
     private TimeResource _time = new TimeResource();
     public TimeResource Time { get => _time; private set => _time = value; }
@@ -51,7 +53,7 @@ public class World
     {
         if (_running) return;
         
-        RegisterResource<TimeResource>(_time);
+        RegisterResource<TimeResource>(_time, "Time");
         _fixedUpdateCheck = 1.0 / _fixedFps; // Set the amount of delta time need to pass for an update
         _time.FixedDelta = (float)_fixedUpdateCheck;
         
@@ -141,9 +143,55 @@ public class World
     /// </summary>
     /// <param name="resource"></param>
     /// <typeparam name="T"></typeparam>
-    public void RegisterResource<T>(T resource)
+    public void RegisterResource<T>(T resource, string tag = "")
     {
         _resources.TryAdd(typeof(T), resource);
+        if (tag.Length > 0)
+        {
+            _taggedResources.TryAdd(tag, resource);
+        }
+    }
+
+    public void TagResource<T>(string tag)
+    {
+        if (_resources.ContainsKey(typeof(T)))
+        {
+            _taggedResources.TryAdd(tag, _resources[typeof(T)]);
+        }
+    }
+
+    public void UnregisterResource<T>()
+    {
+        var remove = false;
+        object res = null;
+        if (_resources.ContainsKey(typeof(T)))
+        {
+            res = _resources[typeof(T)];
+            _resources.Remove(typeof(T));
+            remove = true;
+
+        }
+        
+        if (remove)
+        {
+            if (_taggedResources.ContainsValue(res))
+            {
+                var key = "";
+                foreach (var r in _taggedResources)
+                {
+                    if (r.Value == res)
+                    {
+                        key = r.Key;
+                        break;
+                    }
+                }
+
+                if (key.Length > 0)
+                {
+                    _taggedResources.Remove(key);
+                }
+            }
+        }
     }
 
     public T GetResource<T>()
@@ -151,6 +199,36 @@ public class World
         object res;
         _resources.TryGetValue(typeof(T), out res);
         return (T)res;
+    }
+
+    public T GetTaggedResource<T>(string tag)
+    {
+        object res;
+        var success = _taggedResources.TryGetValue(tag, out res);
+        return (T)res;
+    }
+    
+    public object GetTaggedResource(string tag)
+    {
+        object res;
+        var success = _taggedResources.TryGetValue(tag, out res);
+        if (!success)
+        {
+            return null;
+        }
+        return res;
+    }
+
+    public void UntagResource(string tag)
+    {
+        if(_taggedResources.ContainsKey(tag))
+            _taggedResources.Remove(tag);
+    }
+
+    public void UntagEntity(string tag)
+    {
+        if(_taggedEntities.ContainsKey(tag))
+            _taggedEntities.Remove(tag);
     }
 
     public void RegisterComponent<T>() where T : Component
@@ -250,7 +328,7 @@ public class World
         {
             // We full fool
             Console.WriteLine("Max entities met!");
-            return new EntityID();
+            return EntityID.Null().Clone();
         }
         if (_freeIDs.Count > 0)
         {
@@ -261,14 +339,14 @@ public class World
             _entityIDs[recycledID.Index] = recycledID;
             _transforms[recycledID.Index] = new Transform();
             //Console.WriteLine($"Recycled ID: {recycledID}");
-            return recycledID;
+            return recycledID.Clone();
         }
         var newID = new EntityID(_nextId++, 0);
         _activeIDs.Add(newID);
         _entityIDs[newID.Index] = newID;
         _transforms[newID.Index] = new Transform();
         //Console.WriteLine($"New ID: {newID}");
-        return newID;
+        return newID.Clone();
     }
     
     public EntityID CreateEntity(Transform transform)
@@ -278,7 +356,7 @@ public class World
         {
             _transforms[id.Index] = transform;
         }
-        return id;
+        return id.Clone();
     }
     
     public EntityID CreateEntity(float x, float y, float scale = 1f, float rot = 0f)
@@ -289,7 +367,21 @@ public class World
         {
             _transforms[id.Index] = transform;
         }
-        return id;
+        return id.Clone();
+    }
+
+    public void TagEntity(EntityID entity, string tag)
+    {
+        _taggedEntities.TryAdd(tag, entity);
+    }
+
+    public EntityID GetTaggedEntity(string tag)
+    {
+        EntityID ent;
+        var success = _taggedEntities.TryGetValue(tag, out ent);
+        if (!success)
+            return EntityID.Null();
+        return ent.Clone();
     }
 
     public bool DeleteEntity(EntityID id)
@@ -301,6 +393,19 @@ public class World
             _freeIDs.Add(id);
             _transforms[id.Index] = new Transform();
             RemoveEntityFromMappers(id);
+            if (_taggedEntities.ContainsValue(id))
+            {
+                var key = "";
+                foreach (var k in _taggedEntities)
+                {
+                    if (k.Value == id)
+                    {
+                        key = k.Key;
+                    }
+                }
+
+                _taggedEntities.Remove(key);
+            }
             return true;
         }
         Console.WriteLine($"Tried to delete non active Entity: {id} ");
@@ -309,7 +414,7 @@ public class World
 
     public EntityID GetLastActive()
     {
-        return _activeIDs.Last();
+        return _activeIDs.Last().Clone();
     }
     
     // TODO: I should probably use when things call into the World as a first check and a quicker fail. For instance getting components from EntityID
@@ -515,11 +620,11 @@ public class World
         {
             if (id.Index == index)
             {
-                return id;
+                return id.Clone();
             }
         }
         Console.WriteLine($"Entity not active at index: {index}");
-        return new EntityID();
+        return EntityID.Null().Clone();
     }
 }
 

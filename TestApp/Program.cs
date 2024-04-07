@@ -50,8 +50,40 @@ public class Program
         
         World.Init();
         Raylib.InitWindow(1280, 720, "Test App");
+
+        var entity = World.CreateEntity();
+        World.AddComponent(entity, new NullComponent());
+        World.TagEntity(entity, "NULL");
+        var nullEnt = World.GetTaggedEntity("NULL");
+        Console.WriteLine($"fetch-----------------{nullEnt}-----------------");
         
+        World.UntagEntity("NULL");
+        nullEnt = World.GetTaggedEntity("NULL");
+        Console.WriteLine($"un tag -----------------{nullEnt}-----------------");
         
+        World.TagEntity(entity, "NULL");
+        nullEnt = World.GetTaggedEntity("NULL");
+        Console.WriteLine($"retag-----------------{nullEnt}-----------------");
+        
+        World.DeleteEntity(entity);
+        nullEnt = World.GetTaggedEntity("NULL");
+        Console.WriteLine($"delete -----------------{nullEnt}-----------------");
+
+        TimeResource timeR = (TimeResource) World.GetTaggedResource("Time");
+        Console.WriteLine($"1-----{timeR}-----");
+        timeR = World.GetTaggedResource<TimeResource>("Time");
+        Console.WriteLine($"fetch -----{timeR}-----");
+        World.UntagResource("Time");
+        timeR = World.GetTaggedResource<TimeResource>("Time");
+        Console.WriteLine($"untag -----{timeR}-----");
+        
+        World.TagResource<TimeResource>("Time");
+        timeR = World.GetTaggedResource<TimeResource>("Time");
+        Console.WriteLine($"retag -----{timeR}-----");
+        
+        World.UnregisterResource<TimeResource>();
+        timeR = World.GetTaggedResource<TimeResource>("Time");
+        Console.WriteLine($"unreg -----{timeR}-----");
         
         BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
         ToSpawn = 100;
