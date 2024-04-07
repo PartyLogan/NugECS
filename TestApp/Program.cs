@@ -18,10 +18,18 @@ public class Program
     
     public static void Main(string[] args)
     {
+        Raylib.InitWindow(1280, 720, "Test App");
         World = new World(200_000);
+        
+        BunnySprite = Raylib.LoadTexture("../../../resources/bunnys.png");
+        
+        World.RegisterComponent<NullComponent>();
+        World.RegisterComponent<MoverComponent>();
+        World.RegisterComponent<RenderComponent>();
+        var input = "";
         if (args.Length > 0)
         {
-            var input = args[0];
+            input = args[0];
             if (input == "ecs")
             {
                 ecs = true;
@@ -30,10 +38,6 @@ public class Program
             if(input == "fixed")
                 World.SetFixedUpdate(true);
         }
-        
-        World.RegisterComponent<NullComponent>();
-        World.RegisterComponent<MoverComponent>();
-        World.RegisterComponent<RenderComponent>();
         
         if (World.IsFixedUpdate())
         {
@@ -47,46 +51,51 @@ public class Program
             World.RegisterComponent<ECSRescaleComponent>();
         }
         
+        if ((args.Length > 1 && args[1] == "stress") || input == "stress")
+        {
+            for (int i = 0; i < World.MaxEntities(); i++)
+            {
+                SpawnBunny(1280/ 2, 720/2);
+            }
+        }
+        
         World.Init();
-        Raylib.InitWindow(1280, 720, "Test App");
 
-        var entity = World.CreateEntity();
-        World.AddComponent(entity, new NullComponent());
-        World.TagEntity(entity, "NULL");
-        var nullEnt = World.GetTaggedEntity("NULL");
-        Console.WriteLine($"fetch-----------------{nullEnt}-----------------");
-        
-        World.UntagEntity("NULL");
-        nullEnt = World.GetTaggedEntity("NULL");
-        Console.WriteLine($"un tag -----------------{nullEnt}-----------------");
-        
-        World.TagEntity(entity, "NULL");
-        nullEnt = World.GetTaggedEntity("NULL");
-        Console.WriteLine($"retag-----------------{nullEnt}-----------------");
-        
-        World.DeleteEntity(entity);
-        nullEnt = World.GetTaggedEntity("NULL");
-        Console.WriteLine($"delete -----------------{nullEnt}-----------------");
+        // var entity = World.CreateEntity();
+        // World.AddComponent(entity, new NullComponent());
+        // World.TagEntity(entity, "NULL");
+        // var nullEnt = World.GetTaggedEntity("NULL");
+        // Console.WriteLine($"fetch-----------------{nullEnt}-----------------");
+        //
+        // World.UntagEntity("NULL");
+        // nullEnt = World.GetTaggedEntity("NULL");
+        // Console.WriteLine($"un tag -----------------{nullEnt}-----------------");
+        //
+        // World.TagEntity(entity, "NULL");
+        // nullEnt = World.GetTaggedEntity("NULL");
+        // Console.WriteLine($"retag-----------------{nullEnt}-----------------");
+        //
+        // World.DeleteEntity(entity);
+        // nullEnt = World.GetTaggedEntity("NULL");
+        // Console.WriteLine($"delete -----------------{nullEnt}-----------------");
 
-        TimeResource timeR = (TimeResource) World.GetTaggedResource("Time");
-        Console.WriteLine($"1-----{timeR}-----");
-        timeR = World.GetTaggedResource<TimeResource>("Time");
-        Console.WriteLine($"fetch -----{timeR}-----");
-        World.UntagResource("Time");
-        timeR = World.GetTaggedResource<TimeResource>("Time");
-        Console.WriteLine($"untag -----{timeR}-----");
-        
-        World.TagResource<TimeResource>("Time");
-        timeR = World.GetTaggedResource<TimeResource>("Time");
-        Console.WriteLine($"retag -----{timeR}-----");
-        
-        World.UnregisterResource<TimeResource>();
-        timeR = World.GetTaggedResource<TimeResource>("Time");
-        Console.WriteLine($"unreg -----{timeR}-----");
+        // TimeResource timeR = (TimeResource) World.GetTaggedResource("Time");
+        // Console.WriteLine($"1-----{timeR}-----");
+        // timeR = World.GetTaggedResource<TimeResource>("Time");
+        // Console.WriteLine($"fetch -----{timeR}-----");
+        // World.UntagResource("Time");
+        // timeR = World.GetTaggedResource<TimeResource>("Time");
+        // Console.WriteLine($"untag -----{timeR}-----");
+        //
+        // World.TagResource<TimeResource>("Time");
+        // timeR = World.GetTaggedResource<TimeResource>("Time");
+        // Console.WriteLine($"retag -----{timeR}-----");
+        //
+        // World.UnregisterResource<TimeResource>();
+        // timeR = World.GetTaggedResource<TimeResource>("Time");
+        // Console.WriteLine($"unreg -----{timeR}-----");
         
         //BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
-        BunnySprite = Raylib.LoadTexture("../../../resources/bunnys.png");
-        Console.WriteLine($"Sprite: {BunnySprite.Width}, {BunnySprite.Height}");
         
         while (!Raylib.WindowShouldClose())
         {
@@ -270,10 +279,15 @@ public class Program
         World.Update(delta);
     }
 
-    public static void SpawnBunny()
+    public static void SpawnBunny(float x = 0, float y = 0)
     {
-        var mousePos = Raylib.GetMousePosition();
-        var entity = World.CreateEntity(mousePos.X, mousePos.Y);
+        var pos = Raylib.GetMousePosition();
+        if (x != 0 || y != 0)
+        {
+            pos.X = x;
+            pos.Y = y;
+        }
+        var entity = World.CreateEntity(pos.X, pos.Y);
         if (World.IsFixedUpdate())
         {
             World.AddComponent(entity, new FixedMoverComponent(rng));

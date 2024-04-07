@@ -8,8 +8,8 @@ namespace NugEcsTestMark;
 public class FixedMoverComponent : Component, IUpdater
 {
     public Vector2 Velocity;
-    public int HSpeed = 50;
-    public int JSpeed = 500;
+    public int HSpeed = 200;
+    public int JSpeed = 600;
     public float Gravity = 180f;
 
     private const int WIDTH = 1280 - 16;
@@ -49,6 +49,10 @@ public class FixedMoverComponent : Component, IUpdater
         }
         
         float rotationDegrees = (float)(FastAtan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;
+        if (Velocity.Y > 0f)
+        {
+            rotationDegrees += 180f;
+        }
         _transform.Rotation = rotationDegrees;
     }
     

@@ -9,7 +9,7 @@ namespace NugEcsTestMark;
 public class MoverComponent : Component, IUpdater
 {
     public Vector2 Velocity;
-    public int HSpeed = 60;
+    public int HSpeed = 200;
     public int JSpeed = 820;
     public float Gravity = 480f;
 
