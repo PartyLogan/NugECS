@@ -14,7 +14,7 @@ public class Program
     public static Texture2D BunnySprite;
     public static Random rng = new Random();
 
-    public static bool ecs = true;
+    public static bool ecs = false;
     
     public static void Main(string[] args)
     {
