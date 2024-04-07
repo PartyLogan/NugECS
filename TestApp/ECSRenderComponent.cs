@@ -9,15 +9,17 @@ public class ECSRenderComponent : Component
 {
     public Texture2D Sprite;
     public Color Color;
-    public Rectangle Source = new Rectangle(0, 0, 26, 36);
-    public Rectangle Dest = new Rectangle(0, 0, 26, 36);
-    public Vector2 Origin = new Vector2(26 / 2, 36 / 2);
+    public Rectangle Source = new Rectangle(0, 0, 30, 48);
+    public Rectangle Dest = new Rectangle(0, 0, 30, 48);
+    public Vector2 Origin = new Vector2(15, 24);
     public Transform Transform;
     private int _spriteIndex = 0;
     
    
     public ECSRenderComponent(Texture2D sprite, Color color, int spriteIndex)
     {
+        Source.Width = sprite.Width;
+        Source.Height = sprite.Height / 5;
         Sprite = sprite;
         Color = color;
         _spriteIndex = spriteIndex;

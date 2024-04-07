@@ -86,6 +86,7 @@ public class Program
         
         //BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
         BunnySprite = Raylib.LoadTexture("../../../resources/bunnys.png");
+        Console.WriteLine($"Sprite: {BunnySprite.Width}, {BunnySprite.Height}");
         
         while (!Raylib.WindowShouldClose())
         {
@@ -142,10 +143,12 @@ public class Program
     
     public static String result;
     public static String fastStr;
-    
+    public static bool spawn = false;
     public static void BunnyCheck()
     {
-        if (Raylib.IsMouseButtonDown(MouseButton.Left))
+        if (Raylib.IsKeyPressed(KeyboardKey.Space))
+            spawn = !spawn;
+        if (Raylib.IsMouseButtonDown(MouseButton.Left) || spawn)
         {
             if(World.ActiveEntities() < World.MaxEntities())
                 SpawnBunny();
@@ -193,6 +196,10 @@ public class Program
             }
         
             float rotationDegrees = (float)(mover.FastAtan2(mover.Velocity.Y, mover.Velocity.X) * (180 / Math.PI)) + 90;
+            if (mover.Velocity.Y > 0f)
+            {
+                rotationDegrees += 180f;
+            }
             mover.Transform.Rotation = rotationDegrees;
         }
 
@@ -208,7 +215,7 @@ public class Program
             {
                 if (t.Scale.X < 4.9f)
                 {
-                    t.Scale += new Vector2(0.001f, 0.001f);
+                    t.Scale += new Vector2(1f, 1f) * delta;
                 }
                 else
                 {
@@ -219,7 +226,7 @@ public class Program
             {
                 if (t.Scale.X > 0.2f)
                 {
-                    t.Scale -= new Vector2(0.001f, 0.001f);
+                    t.Scale -= new Vector2(1f, 1f)  * delta;
                 }
                 else
                 {
@@ -238,6 +245,8 @@ public class Program
             render.Dest.Y = render.Transform.Position.Y;
             render.Dest.Width = render.Source.Width * render.Transform.Scale.X;
             render.Dest.Height = render.Source.Height * render.Transform.Scale.Y;
+            render.Origin.X = render.Dest.Width / 2f;
+            render.Origin.Y = render.Dest.Height / 2f;
             Raylib.DrawTexturePro(render.Sprite, render.Source, render.Dest, render.Origin, render.Transform.Rotation, render.Color);
         }
     }

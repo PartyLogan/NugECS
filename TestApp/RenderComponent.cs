@@ -9,18 +9,20 @@ public class RenderComponent : Component, IRenderer
 {
     private Texture2D _sprite;
     private Color _color;
-    private Rectangle _source = new Rectangle(0, 0, 26, 36);
-    private Rectangle _dest = new Rectangle(0, 0, 26, 36);
-    private Vector2 _origin = new Vector2(26 / 2, 36 / 2);
+    private Rectangle _source = new Rectangle(0, 0, 30, 54);
+    private Rectangle _dest = new Rectangle(0, 0, 30, 54);
+    private Vector2 _origin = new Vector2(15, 24);
     private Transform _transform;
     private int _spriteIndex = 0;
     
     public RenderComponent(Texture2D sprite, Color color, int spriteIndex)
     {
+        _source.Width = sprite.Width;
+        _source.Height = sprite.Height / 5;
         _sprite = sprite;
         _color = color;
         _spriteIndex = spriteIndex;
-        _source.Y = _spriteIndex * _source.Height;
+        _source.Y = spriteIndex * _source.Height;
     }
 
     public override void Init()

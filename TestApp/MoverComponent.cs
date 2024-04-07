@@ -53,6 +53,10 @@ public class MoverComponent : Component, IUpdater
         }
         
         float rotationDegrees = (float)(FastAtan2(Velocity.Y, Velocity.X) * (180 / Math.PI)) + 90;
+        if (Velocity.Y > 0f)
+        {
+            rotationDegrees += 180f;
+        }
         Transform.Rotation = rotationDegrees;
     }
     
