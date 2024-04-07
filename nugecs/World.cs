@@ -21,6 +21,7 @@ public class World
     private List<EntityID> _activeIDs = new List<EntityID>();
     private EntityID[] _entityIDs;
     private Dictionary<string, EntityID> _taggedEntities = new Dictionary<string, EntityID>();
+    private List<EntityID> _toDelete = new List<EntityID>();
     private Transform[] _transforms;
     private Dictionary<Type, ComponentMapper> _componentMappers = new Dictionary<Type, ComponentMapper>();
     private List<ComponentMapper> _updaters = new List<ComponentMapper>();
@@ -101,7 +102,19 @@ public class World
                 cm.Update(_time.Delta);
             }
         }
+    }
 
+    public void Maintain()
+    {
+        if (_toDelete.Any())
+        {
+            foreach (var e in _toDelete)
+            {
+                DeleteEntityNow(e);
+            }
+
+            _toDelete.Clear();
+        }
     }
 
     public bool IsFixedUpdate()
@@ -384,7 +397,7 @@ public class World
         return ent.Clone();
     }
 
-    public bool DeleteEntity(EntityID id)
+    public bool DeleteEntityNow(EntityID id)
     {
         if (_activeIDs.Contains(id))
         {
@@ -411,6 +424,17 @@ public class World
         Console.WriteLine($"Tried to delete non active Entity: {id} ");
         return false; // Not in the actives so it fails
     }
+    
+    public bool DeleteEntity(EntityID id)
+    {
+        if (_activeIDs.Contains(id))
+        {
+            _toDelete.Add(id);
+            return true;
+        }
+        Console.WriteLine($"Tried to delete non active Entity: {id} ");
+        return false; // Not in the actives so it fails
+    }
 
     public EntityID GetLastActive()
     {
@@ -420,6 +444,8 @@ public class World
     // TODO: I should probably use when things call into the World as a first check and a quicker fail. For instance getting components from EntityID
     public bool IsLive(EntityID id)
     {
+        if (id.IsNull())
+            return false;
         if (_activeIDs.Contains(id))
         {
             return _entityIDs[id.Index] == id;

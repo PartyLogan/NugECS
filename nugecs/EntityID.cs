@@ -16,6 +16,11 @@ public struct EntityID
 
     }
 
+    public bool IsNull()
+    {
+        return Index == -1 || Generation == -1;
+    }
+
     public static EntityID Null()
     {
         return new EntityID(-1, -1);

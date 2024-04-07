@@ -4,27 +4,27 @@ public class TimeResource
 {
     //public float Delta = 0f;
     private float _fixedDelta = 1.0f / 60.0f;
-    private float _timeMod = 1.0f;
+    private float _timeScale = 1.0f;
     private float _delta;
 
-    public float TimeMod
+    public float TimeScale
     {
-        get => _timeMod;
-        set => _timeMod = Math.Clamp(value, 0.1f, 5.0f);
+        get => _timeScale;
+        set => _timeScale = Math.Clamp(value, 0.1f, 5.0f);
     }
     public float FixedDelta
     {
-        get => _fixedDelta * _timeMod;
+        get => _fixedDelta * _timeScale;
         set => _fixedDelta = value;
     }
     public float Delta
     {
-        get => _delta * TimeMod;
+        get => _delta * TimeScale;
         set => _delta = value;
     }
 
     public override string ToString()
     {
-        return $"T Mod: {_timeMod:0.##}, Fixed: {_fixedDelta*1000:0.##}ms, Delta: {_delta * 1000:0.##}ms";
+        return $"Time - Scale: {_timeScale:0.##}, Fixed: {_fixedDelta*1000:0.##}ms, Delta: {_delta * 1000:0.##}ms";
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using System.Numerics;
+using System.Runtime.Intrinsics.X86;
 
 using Raylib_cs;
 using TestApp;
@@ -13,10 +14,7 @@ public class Program
     public static Texture2D BunnySprite;
     public static Random rng = new Random();
 
-    public static int ToSpawn = 0;
-    public static int ToDespawn = 0;
-
-    public static bool ecs = false;
+    public static bool ecs = true;
     
     public static void Main(string[] args)
     {
@@ -46,6 +44,7 @@ public class Program
         {
             World.RegisterComponent<ECSMoverComponent>();
             World.RegisterComponent<ECSRenderComponent>();
+            World.RegisterComponent<ECSRescaleComponent>();
         }
         
         World.Init();
@@ -85,8 +84,8 @@ public class Program
         timeR = World.GetTaggedResource<TimeResource>("Time");
         Console.WriteLine($"unreg -----{timeR}-----");
         
-        BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
-        ToSpawn = 100;
+        //BunnySprite = Raylib.LoadTexture("../../../resources/wabbit_alpha.png");
+        BunnySprite = Raylib.LoadTexture("../../../resources/bunnys.png");
         
         while (!Raylib.WindowShouldClose())
         {
@@ -103,73 +102,63 @@ public class Program
             
             World.Render();
             
-            Raylib.DrawFPS(10, 10);
+            //Raylib.DrawFPS(10, 10);
+            DrawOutlinedText($"FPS: {Raylib.GetFPS()}",10, 10, 20, Color.Green, 1, Color.Black);
             
             var entCount = World.ActiveEntities();
             result = $"Entities: {entCount}";
-            Raylib.DrawText(result, 10, 30, 20, Color.Green);
+            DrawOutlinedText($"{result}", 10, 30, 20, Color.Green, 1, Color.Black);
+            //Raylib.DrawText(result, 10, 30, 20, Color.Green);
             var time = World.Time.ToString();
-            Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
+            DrawOutlinedText($"{time}", 10, 50, 20, Color.Green, 1, Color.Black);
+            //Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
 
             if (ecs)
             {
-                Raylib.DrawText($"Using ECS", 10, 90, 20, Color.Green);
+                DrawOutlinedText("Using ECS", 10, 70, 20, Color.Green, 1, Color.Black);
             }
             
             if (World.IsFixedUpdate())
             {
-                Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
+                DrawOutlinedText(World.DebugFixedUpdateString(), 10, 70, 20, Color.Green, 1, Color.Black);
+                //Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
             }
 
             Raylib.EndDrawing();
+            
+            World.Maintain();
         }
         
         Raylib.CloseWindow();
     }
-
+    
+    public static void DrawOutlinedText(string text, int posX, int posY, int fontSize, Color color, int outlineSize, Color outlineColor) {
+        Raylib.DrawText(text, posX - outlineSize, posY - outlineSize, fontSize, outlineColor);
+        Raylib.DrawText(text, posX + outlineSize, posY - outlineSize, fontSize, outlineColor);
+        Raylib.DrawText(text, posX - outlineSize, posY + outlineSize, fontSize, outlineColor);
+        Raylib.DrawText(text, posX + outlineSize, posY + outlineSize, fontSize, outlineColor);
+        Raylib.DrawText(text, posX, posY, fontSize, color);
+    }
+    
     public static String result;
     public static String fastStr;
     
     public static void BunnyCheck()
     {
-        if (Raylib.IsMouseButtonDown(MouseButton.Left) && ToSpawn == 0 && ToDespawn == 0)
+        if (Raylib.IsMouseButtonDown(MouseButton.Left))
         {
-            ToSpawn = Math.Clamp(World.MaxEntities() - World.ActiveEntities(), 0, CHANGE_AMOUNT);
+            if(World.ActiveEntities() < World.MaxEntities())
+                SpawnBunny();
         }
         else if (Raylib.IsMouseButtonDown(MouseButton.Right))
         {
-            ToDespawn = Math.Clamp(World.ActiveEntities(), 0, CHANGE_AMOUNT);
-        }
-
-        if (ToSpawn > 0)
-        {
-            for (int i = TO_CHANGE; i > 0; i--)
-            {
-                SpawnBunny();
-                ToSpawn--;
-                if (ToSpawn == 0)
-                    break;
-            }
-        }
-
-        if (ToDespawn > 0)
-        {
-            for (int i = TO_CHANGE; i > 0; i--)
-            {
+            if(World.ActiveEntities() > 0)
                 World.DeleteEntity(World.GetLastActive());
-                ToDespawn--;
-                if (ToDespawn == 0)
-                    break;
-            }
         }
     }
 
-    private const int CHANGE_AMOUNT = 1000;
-    private const int TO_CHANGE = 50;
-
     public static void EcsUpdate()
     {
-       
         //var delta = Raylib.GetFrameTime();
         var time = World.Time;
         var delta = time.Delta;
@@ -205,7 +194,38 @@ public class Program
         
             float rotationDegrees = (float)(mover.FastAtan2(mover.Velocity.Y, mover.Velocity.X) * (180 / Math.PI)) + 90;
             mover.Transform.Rotation = rotationDegrees;
-            
+        }
+
+        Dictionary<Type, Component[]> scalers;
+        scalers = World.Query([typeof(ECSRescaleComponent)], [typeof(NullComponent)]);
+        var transforms = World.GetTransforms();
+
+        foreach (var s in (scalers[typeof(ECSRescaleComponent)]))
+        {
+            var scaler = (ECSRescaleComponent)s;
+            var t = transforms[s.Owner.Index];
+            if (scaler.Increasing)
+            {
+                if (t.Scale.X < 4.9f)
+                {
+                    t.Scale += new Vector2(0.001f, 0.001f);
+                }
+                else
+                {
+                    scaler.Increasing = false;
+                }
+            }
+            else
+            {
+                if (t.Scale.X > 0.2f)
+                {
+                    t.Scale -= new Vector2(0.001f, 0.001f);
+                }
+                else
+                {
+                    scaler.Increasing = true;
+                }
+            }
         }
         
         Dictionary<Type, Component[]> renderers;
@@ -216,9 +236,9 @@ public class Program
             var render = (ECSRenderComponent)r;
             render.Dest.X = render.Transform.Position.X;
             render.Dest.Y = render.Transform.Position.Y;
-
+            render.Dest.Width = render.Source.Width * render.Transform.Scale.X;
+            render.Dest.Height = render.Source.Height * render.Transform.Scale.Y;
             Raylib.DrawTexturePro(render.Sprite, render.Source, render.Dest, render.Origin, render.Transform.Rotation, render.Color);
-            
         }
     }
     
@@ -229,12 +249,12 @@ public class Program
             if (Raylib.GetMouseWheelMove() > 0)
             {
                  var time = World.Time;
-                 time.TimeMod += 0.1f;
+                 time.TimeScale += 0.1f;
             }
             else
             {
                 var time = World.Time;
-                time.TimeMod -= 0.1f;
+                time.TimeScale -= 0.1f;
             }
         }
         var delta = Raylib.GetFrameTime();
@@ -258,19 +278,25 @@ public class Program
             World.AddComponent(entity, new MoverComponent(rng));
         }
 
-        if(rng.Next(10) > 8)
-            World.AddComponent(entity, new NullComponent());
+        if (ecs && rng.Next(100) > 95)
+        {
+            World.AddComponent(entity, new ECSRescaleComponent());
+            if (ecs && rng.Next(100) > 90)
+            {
+                World.AddComponent(entity, new NullComponent());
+            }
+        }
+            
         
-        
-        var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
+        //var color = new Color(rng.Next(255), rng.Next(255), rng.Next(255), 255);
+        var spriteIndex = rng.Next(5);
         if (ecs)
         {
-            World.AddComponent(entity, new ECSRenderComponent(BunnySprite, color));
+            World.AddComponent(entity, new ECSRenderComponent(BunnySprite, Color.White, spriteIndex));
         }
         else
         {
-            World.AddComponent(entity, new RenderComponent(BunnySprite, color));
+            World.AddComponent(entity, new RenderComponent(BunnySprite, Color.White, spriteIndex));
         }
-        
     }
 }

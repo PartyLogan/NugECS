@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("nugecs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+43fd00a556ff37822cf0f740c1da03fe574950d4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f13d6dc3aa2539283327ffcc7672ccc9ba88b8a")]
 [assembly: System.Reflection.AssemblyProductAttribute("nugecs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("nugecs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
