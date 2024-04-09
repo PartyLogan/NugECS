@@ -4,29 +4,29 @@ namespace nugecs;
 
 public class Transform
 {
-    public Vector2 Position;
-    public Vector2 Scale = Vector2.One;
+    public Vector3 Position;
+    public Vector3 Scale = Vector3.One;
     public float Rotation = 0f;
 
     public Transform()
     {
-        Position = Vector2.Zero;
-        Scale = Vector2.One;
+        Position = Vector3.Zero;
+        Scale = Vector3.One;
         Rotation = 0f;
     }
 
-    public Transform(Vector2 pos)
+    public Transform(Vector3 pos)
     {
         Position = pos;
     }
     
-    public Transform(Vector2 pos, Vector2 scale)
+    public Transform(Vector3 pos, Vector3 scale)
     {
         Position = pos;
         Scale = scale;
     }
     
-    public Transform(Vector2 pos, Vector2 scale, float rot)
+    public Transform(Vector3 pos, Vector3 scale, float rot)
     {
         Position = pos;
         Scale = scale;

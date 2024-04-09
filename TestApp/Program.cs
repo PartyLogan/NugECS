@@ -224,7 +224,7 @@ public class Program
             {
                 if (t.Scale.X < 4.9f)
                 {
-                    t.Scale += new Vector2(1f, 1f) * delta;
+                    t.Scale += new Vector3(1f, 1f, 0f) * delta;
                 }
                 else
                 {
@@ -235,7 +235,7 @@ public class Program
             {
                 if (t.Scale.X > 0.2f)
                 {
-                    t.Scale -= new Vector2(1f, 1f)  * delta;
+                    t.Scale -= new Vector3(1f, 1f, 0f)  * delta;
                 }
                 else
                 {
@@ -287,7 +287,7 @@ public class Program
             pos.X = x;
             pos.Y = y;
         }
-        var entity = World.CreateEntity(pos.X, pos.Y);
+        var entity = World.CreateEntity(pos.X, pos.Y, 0);
         if (World.IsFixedUpdate())
         {
             World.AddComponent(entity, new FixedMoverComponent(rng));

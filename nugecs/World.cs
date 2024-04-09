@@ -372,9 +372,20 @@ public class World
         return id.Clone();
     }
     
-    public EntityID CreateEntity(float x, float y, float scale = 1f, float rot = 0f)
+    public EntityID CreateEntity(float x, float y, float z, float scale = 1f, float rot = 0f)
     {
-        var transform = new Transform(new Vector2(x, y), new Vector2(scale, scale), rot);
+        var transform = new Transform(new Vector3(x, y, z), new Vector3(scale, scale, scale), rot);
+        var id = CreateEntity();
+        if (id.Index != -1)
+        {
+            _transforms[id.Index] = transform;
+        }
+        return id.Clone();
+    }
+    
+    public EntityID CreateEntity(Vector3 pos, Vector3 scale, float rot = 0f)
+    {
+        var transform = new Transform(pos, scale, rot);
         var id = CreateEntity();
         if (id.Index != -1)
         {
