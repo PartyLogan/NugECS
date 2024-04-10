@@ -4,7 +4,7 @@ using nugecs;
 using Raylib_cs;
 using Transform = nugecs.Transform;
 
-namespace NugEcsTestMark;
+namespace TestApp;
 
 public class MoverComponent : Component, IUpdater
 {

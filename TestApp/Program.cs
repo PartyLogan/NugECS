@@ -4,7 +4,7 @@ using System.Runtime.Intrinsics.X86;
 using Raylib_cs;
 using TestApp;
 
-namespace NugEcsTestMark;
+namespace TestApp;
 
 using nugecs;
 
@@ -53,7 +53,24 @@ public class Program
         
         if ((args.Length > 1 && args[1] == "stress") || input == "stress")
         {
-            for (int i = 0; i < World.MaxEntities(); i++)
+            var toSpawn = World.MaxEntities();
+            if (input == "stress")
+            {
+                int num;
+                if (int.TryParse(args[1], out num))
+                {
+                    toSpawn = Math.Clamp(num, 0, toSpawn);
+                }
+            }
+            else if (args[1] == "stress")
+            {
+                int num;
+                if (int.TryParse(args[2], out num))
+                {
+                    toSpawn = Math.Clamp(num, 0, toSpawn);
+                }
+            }
+            for (int i = 0; i < toSpawn; i++)
             {
                 SpawnBunny(1280/ 2, 720/2);
             }
@@ -112,26 +129,27 @@ public class Program
             
             World.Render();
             
-            //Raylib.DrawFPS(10, 10);
-            DrawOutlinedText($"FPS: {Raylib.GetFPS()}",10, 10, 20, Color.Green, 1, Color.Black);
+            Raylib.DrawFPS(10, 10);
+            //DrawOutlinedText($"FPS: {Raylib.GetFPS()}",10, 10, 20, Color.Green, 1, Color.Black);
             
             var entCount = World.ActiveEntities();
             result = $"Entities: {entCount}";
-            DrawOutlinedText($"{result}", 10, 30, 20, Color.Green, 1, Color.Black);
-            //Raylib.DrawText(result, 10, 30, 20, Color.Green);
+            //DrawOutlinedText($"{result}", 10, 30, 20, Color.Green, 1, Color.Black);
+            Raylib.DrawText(result, 10, 30, 20, Color.Green);
             var time = World.Time.ToString();
-            DrawOutlinedText($"{time}", 10, 50, 20, Color.Green, 1, Color.Black);
-            //Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
+            //DrawOutlinedText($"{time}", 10, 50, 20, Color.Green, 1, Color.Black);
+            Raylib.DrawText($"Time Res: {time}", 10, 60, 20, Color.Green);
 
             if (ecs)
             {
-                DrawOutlinedText("Using ECS", 10, 70, 20, Color.Green, 1, Color.Black);
+                //DrawOutlinedText("Using ECS", 10, 70, 20, Color.Green, 1, Color.Black);
+                Raylib.DrawText("Using ECS", 10, 70, 20, Color.Green);
             }
             
             if (World.IsFixedUpdate())
             {
-                DrawOutlinedText(World.DebugFixedUpdateString(), 10, 70, 20, Color.Green, 1, Color.Black);
-                //Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
+                //DrawOutlinedText(World.DebugFixedUpdateString(), 10, 70, 20, Color.Green, 1, Color.Black);
+                Raylib.DrawText(World.DebugFixedUpdateString(), 10, 90, 20, Color.Green);
             }
 
             Raylib.EndDrawing();
